@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 RGB Control</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 30px;
+        }
+
+        .color-box {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        input[type="range"] {
+            width: 80%;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+        }
+
+        .value {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>ESP32-S3 RGB Control</h2>
+
+<div class="color-box">
+    <h3>🔴 RED</h3>
+
+    <button onclick="toggleColor('red')">ON / OFF</button>
+
+    <br><br>
+
+    <input type="range"
+           min="0"
+           max="255"
+           value="255"
+           id="red">
+
+    <p>Brightness: <span id="redValue">255</span></p>
+</div>
+
+
+<div class="color-box">
+    <h3>🟢 GREEN</h3>
+
+    <button onclick="toggleColor('green')">ON / OFF</button>
+
+    <br><br>
+
+    <input type="range"
+           min="0"
+           max="255"
+           value="255"
+           id="green">
+
+    <p>Brightness: <span id="greenValue">255</span></p>
+</div>
+
+
+<div class="color-box">
+    <h3>🔵 BLUE</h3>
+
+    <button onclick="toggleColor('blue')">ON / OFF</button>
+
+    <br><br>
+
+    <input type="range"
+           min="0"
+           max="255"
+           value="255"
+           id="blue">
+
+    <p>Brightness: <span id="blueValue">255</span></p>
+</div>
+
+
+<br>
+
+<button onclick="turnOff()">ALL OFF</button>
+
+
+<script>
+
+let redOn = false;
+let greenOn = false;
+let blueOn = false;
+
+
+function sendRGB() {
+
+    let r = redOn ? Number(document.getElementById("red").value) : 0;
+    let g = greenOn ? Number(document.getElementById("green").value) : 0;
+    let b = blueOn ? Number(document.getElementById("blue").value) : 0;
+
+    fetch("/neopixel", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            command: "RGB",
+            r: r,
+            g: g,
+            b: b
+        })
+    });
+}
+
+
+function toggleColor(color) {
+
+    if (color === "red") {
+        redOn = !redOn;
+    }
+
+    if (color === "green") {
+        greenOn = !greenOn;
+    }
+
+    if (color === "blue") {
+        blueOn = !blueOn;
+    }
+
+    sendRGB();
+}
+
+
+function turnOff() {
+
+    redOn = false;
+    greenOn = false;
+    blueOn = false;
+
+    sendRGB();
+}
+
+
+document.getElementById("red").addEventListener("input", function() {
+    document.getElementById("redValue").innerText = this.value;
+    sendRGB();
+});
+
+
+document.getElementById("green").addEventListener("input", function() {
+    document.getElementById("greenValue").innerText = this.value;
+    sendRGB();
+});
+
+
+document.getElementById("blue").addEventListener("input", function() {
+    document.getElementById("blueValue").innerText = this.value;
+    sendRGB();
+});
+
+</script>
+
+</body>
+</html>
+
