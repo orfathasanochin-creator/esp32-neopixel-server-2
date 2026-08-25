@@ -1,0 +1,58 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <ArduinoJson.h>
+
+const char* ssid = "Moury_5G";
+const char* password = "01608783613";
+
+const char* server = "https://esp32-neopixel-server.onrender.com/neopixel";
+
+void setup() {
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    neopixelWrite(RGB_BUILTIN, 255, 0, 0);
+    delay(300);
+    neopixelWrite(RGB_BUILTIN, 0, 0, 0);
+    delay(300);
+  }
+
+  neopixelWrite(RGB_BUILTIN, 0, 255, 0);
+}
+
+void loop() {
+
+  if (WiFi.status() == WL_CONNECTED) {
+
+    HTTPClient http;
+    http.begin(server);
+
+    int httpCode = http.GET();
+
+    if (httpCode == 200) {
+
+      String payload = http.getString();
+
+      DynamicJsonDocument doc(256);
+      deserializeJson(doc, payload);
+
+      String cmd = doc["command"];
+
+      if (cmd == "OFF") {
+        neopixelWrite(RGB_BUILTIN, 0, 0, 0);
+      } else {
+        int r = doc["r"];
+        int g = doc["g"];
+        int b = doc["b"];
+
+        neopixelWrite(RGB_BUILTIN, r, g, b);
+      }
+    }
+
+    http.end();
+  }
+
+  delay(500);
+}
